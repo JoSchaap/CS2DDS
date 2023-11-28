@@ -14,8 +14,15 @@ bash "${STEAMCMDDIR}/steamcmd.sh" +force_install_dir "${STEAMAPPDIR}" \
 mkdir -p ~/.steam/sdk64
 ln -sfT ${STEAMCMDDIR}/linux64/steamclient.so ~/.steam/sdk64/steamclient.so
 
+# set instance ID
+if [[ -z $CS2_IID ]]; then
+    CS2_INSTANCE_ID="1"
+else
+    CS2_INSTANCE_ID="${CS2_IID}"
+fi
+
 # Install server.cfg
-cp /etc/server.cfg "${STEAMAPPDIR}"/game/csgo/cfg/server.cfg
+cp /etc/server.cfg "${STEAMAPPDIR}"/game/csgo/cfg/server"${CS2_INSTANCE_ID}".cfg
 sed -i -e "s/{{SERVER_HOSTNAME}}/${CS2_SERVERNAME}/g" \
        -e "s/{{SERVER_PW}}/${CS2_PW}/g" \
        -e "s/{{SERVER_RCON_PW}}/${CS2_RCONPW}/g" \
@@ -26,7 +33,7 @@ sed -i -e "s/{{SERVER_HOSTNAME}}/${CS2_SERVERNAME}/g" \
        -e "s/{{TV_RELAY_PW}}/${TV_RELAY_PW}/g" \
        -e "s/{{TV_MAXRATE}}/${TV_MAXRATE}/g" \
        -e "s/{{TV_DELAY}}/${TV_DELAY}/g" \
-       "${STEAMAPPDIR}"/game/csgo/cfg/server.cfg
+       "${STEAMAPPDIR}"/game/csgo/cfg/server"${CS2_INSTANCE_ID}".cfg
 
 # Install hooks
 if [[ ! -f "${STEAMAPPDIR}/pre.sh" ]] ; then
@@ -87,8 +94,9 @@ eval "./cs2" -dedicated \
         +map "${CS2_STARTMAP}" \
         +rcon_password "${CS2_RCONPW}" \
         +sv_password "${CS2_PW}" \
+	"${CS2_ADDITIONAL_ARGS}" \
         +sv_lan "${CS2_LAN}" \
-        "${CS2_ADDITIONAL_ARGS}"
-
+	+exec server"${CS2_INSTANCE_ID}".cfg
+ 
 # Post Hook
 bash "${STEAMAPPDIR}/post.sh"
